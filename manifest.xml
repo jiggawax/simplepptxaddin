@@ -27,7 +27,7 @@
 
   <DefaultSettings>
     <!-- ⬇️  CHANGE THIS to where you host taskpane.html -->
-    <SourceLocation DefaultValue="https://YOUR-SERVER/taskpane.html"/>
+    <SourceLocation DefaultValue="https://jiggawax.github.io/simplepptxaddin/taskpane.html"/>
   </DefaultSettings>
 
   <Permissions>ReadWriteDocument</Permissions>
