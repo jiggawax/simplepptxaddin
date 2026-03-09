@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Slide Adder</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f10;
+      --surface: #1a1a1d;
+      --border: #2a2a2f;
+      --accent: #c8f564;
+      --accent-dim: #9dc244;
+      --text: #e8e8e0;
+      --muted: #6b6b72;
+    }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .header {
+      text-align: center;
+    }
+
+    .label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .title {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .title span {
+      color: var(--accent);
+    }
+
+    .btn-wrap {
+      position: relative;
+    }
+
+    .btn-shadow {
+      position: absolute;
+      inset: 0;
+      background: var(--accent-dim);
+      border-radius: 12px;
+      transform: translate(4px, 4px);
+      transition: transform 0.12s ease;
+    }
+
+    .add-btn {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 180px;
+      height: 180px;
+      background: var(--accent);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.1s ease;
+      outline: none;
+    }
+
+    .add-btn:hover {
+      background: #d4f870;
+    }
+
+    .add-btn:active {
+      transform: translate(4px, 4px);
+    }
+
+    .add-btn:active ~ .btn-shadow {
+      transform: translate(0px, 0px);
+    }
+
+    .btn-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--bg);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-icon svg {
+      width: 28px;
+      height: 28px;
+      stroke: var(--accent);
+      stroke-width: 2.5;
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    .btn-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--bg);
+      letter-spacing: 0.05em;
+    }
+
+    .status-bar {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.3s ease;
+    }
+
+    .status-dot.success { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .status-dot.error   { background: #ff5a5a; box-shadow: 0 0 8px #ff5a5a; }
+    .status-dot.loading { background: #f5c842; animation: pulse 0.8s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .status-text {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .slide-count {
+      margin-top: -16px;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .slide-count strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <div class="container">
+    <div class="header">
+      <div class="label">PowerPoint Plugin</div>
+      <div class="title">Slide<span>+</span></div>
+    </div>
+
+    <div class="btn-wrap">
+      <button class="add-btn" id="addSlideBtn" onclick="addSlide()">
+        <div class="btn-icon">
+          <svg viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </div>
+        <div class="btn-text">ADD SLIDE</div>
+      </button>
+      <div class="btn-shadow" id="btnShadow"></div>
+    </div>
+
+    <div class="slide-count" id="slideCount"></div>
+
+    <div class="status-bar">
+      <div class="status-dot" id="statusDot"></div>
+      <div class="status-text" id="statusText">Ready — click to add a new blank slide.</div>
+    </div>
+  </div>
+
+  <script>
+    Office.onReady(() => {
+      updateCount();
+    });
+
+    function setStatus(type, msg) {
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('statusText');
+      dot.className = 'status-dot ' + type;
+      txt.textContent = msg;
+    }
+
+    async function updateCount() {
+      try {
+        await PowerPoint.run(async (context) => {
+          const slides = context.presentation.slides;
+          slides.load('items');
+          await context.sync();
+          const n = slides.items.length;
+          document.getElementById('slideCount').innerHTML =
+            `Presentation has <strong>${n}</strong> slide${n !== 1 ? 's' : ''}`;
+        });
+      } catch (_) {}
+    }
+
+    async function addSlide() {
+      const btn = document.getElementById('addSlideBtn');
+      const shadow = document.getElementById('btnShadow');
+      btn.disabled = true;
+      setStatus('loading', 'Adding slide…');
+
+      try {
+        await PowerPoint.run(async (context) => {
+          context.presentation.slides.load('items');
+          await context.sync();
+
+          context.presentation.insertSlidesFromBase64(await blankSlideBase64(), {
+            formatting: "UseDestinationTheme"
+          });
+
+          await context.sync();
+        });
+
+        setStatus('success', 'Slide added successfully!');
+        await updateCount();
+        setTimeout(() => setStatus('', 'Ready — click to add a new blank slide.'), 2500);
+      } catch (err) {
+        // Fallback: use addSlide if available
+        try {
+          await PowerPoint.run(async (context) => {
+            context.presentation.slides.add();
+            await context.sync();
+          });
+          setStatus('success', 'Slide added successfully!');
+          await updateCount();
+          setTimeout(() => setStatus('', 'Ready — click to add a new blank slide.'), 2500);
+        } catch (err2) {
+          setStatus('error', 'Error: ' + (err2.message || 'Could not add slide.'));
+        }
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // A minimal blank slide encoded as base64 PPTX
+    // This is a 1-slide blank PPTX file
+    async function blankSlideBase64() {
+      // We'll use the simpler slides.add() API instead
+      throw new Error('use fallback');
+    }
+  </script>
+</body>
+</html>
