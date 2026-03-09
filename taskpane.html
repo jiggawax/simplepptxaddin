@@ -33,15 +33,6 @@
       padding: 24px;
     }
 
-    .noise {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.035;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-      background-size: 200px 200px;
-    }
-
     .container {
       width: 100%;
       max-width: 280px;
@@ -51,9 +42,7 @@
       gap: 32px;
     }
 
-    .header {
-      text-align: center;
-    }
+    .header { text-align: center; }
 
     .label {
       font-size: 10px;
@@ -71,13 +60,9 @@
       line-height: 1.1;
     }
 
-    .title span {
-      color: var(--accent);
-    }
+    .title span { color: var(--accent); }
 
-    .btn-wrap {
-      position: relative;
-    }
+    .btn-wrap { position: relative; }
 
     .btn-shadow {
       position: absolute;
@@ -105,17 +90,10 @@
       outline: none;
     }
 
-    .add-btn:hover {
-      background: #d4f870;
-    }
-
-    .add-btn:active {
-      transform: translate(4px, 4px);
-    }
-
-    .add-btn:active ~ .btn-shadow {
-      transform: translate(0px, 0px);
-    }
+    .add-btn:hover { background: #d4f870; }
+    .add-btn:active { transform: translate(4px, 4px); }
+    .add-btn:active ~ .btn-shadow { transform: translate(0px, 0px); }
+    .add-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .btn-icon {
       width: 56px;
@@ -195,8 +173,6 @@
   </style>
 </head>
 <body>
-  <div class="noise"></div>
-
   <div class="container">
     <div class="header">
       <div class="label">PowerPoint Plugin</div>
@@ -213,7 +189,7 @@
         </div>
         <div class="btn-text">ADD SLIDE</div>
       </button>
-      <div class="btn-shadow" id="btnShadow"></div>
+      <div class="btn-shadow"></div>
     </div>
 
     <div class="slide-count" id="slideCount"></div>
@@ -230,10 +206,8 @@
     });
 
     function setStatus(type, msg) {
-      const dot = document.getElementById('statusDot');
-      const txt = document.getElementById('statusText');
-      dot.className = 'status-dot ' + type;
-      txt.textContent = msg;
+      document.getElementById('statusDot').className = 'status-dot ' + type;
+      document.getElementById('statusText').textContent = msg;
     }
 
     async function updateCount() {
@@ -251,48 +225,22 @@
 
     async function addSlide() {
       const btn = document.getElementById('addSlideBtn');
-      const shadow = document.getElementById('btnShadow');
       btn.disabled = true;
-      setStatus('loading', 'Adding slide…');
+      setStatus('loading', 'Adding slide...');
 
       try {
         await PowerPoint.run(async (context) => {
-          context.presentation.slides.load('items');
-          await context.sync();
-
-          context.presentation.insertSlidesFromBase64(await blankSlideBase64(), {
-            formatting: "UseDestinationTheme"
-          });
-
+          context.presentation.slides.add();
           await context.sync();
         });
-
         setStatus('success', 'Slide added successfully!');
         await updateCount();
         setTimeout(() => setStatus('', 'Ready — click to add a new blank slide.'), 2500);
       } catch (err) {
-        // Fallback: use addSlide if available
-        try {
-          await PowerPoint.run(async (context) => {
-            context.presentation.slides.add();
-            await context.sync();
-          });
-          setStatus('success', 'Slide added successfully!');
-          await updateCount();
-          setTimeout(() => setStatus('', 'Ready — click to add a new blank slide.'), 2500);
-        } catch (err2) {
-          setStatus('error', 'Error: ' + (err2.message || 'Could not add slide.'));
-        }
+        setStatus('error', 'Error: ' + (err.message || 'Could not add slide.'));
       } finally {
         btn.disabled = false;
       }
-    }
-
-    // A minimal blank slide encoded as base64 PPTX
-    // This is a 1-slide blank PPTX file
-    async function blankSlideBase64() {
-      // We'll use the simpler slides.add() API instead
-      throw new Error('use fallback');
     }
   </script>
 </body>
