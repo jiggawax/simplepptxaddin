@@ -82,7 +82,7 @@
       </bt:Images>
       <bt:Urls>
         <!-- ⬇️  CHANGE THIS to where you host taskpane.html -->
-        <bt:Url id="Taskpane.Url" DefaultValue="https://YOUR-SERVER/taskpane.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://jiggawax.github.io/simplepptxaddin/taskpane.html"/>
         <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://go.microsoft.com/fwlink/?LinkId=276812"/>
       </bt:Urls>
       <bt:ShortStrings>
