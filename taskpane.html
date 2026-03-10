@@ -2,87 +2,305 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simple PPTX Add-in</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Slide Tools</title>
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.0.0/css/fabric.min.css"/>
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: Arial, sans-serif;
-      margin: 16px;
-      color: #222;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f3f2f1;
+      color: #323130;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    h1 {
-      font-size: 20px;
-      margin: 0 0 12px;
+    .header {
+      background: #0078d4;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    p {
-      margin: 0 0 12px;
-      line-height: 1.5;
+    .header-icon {
+      width: 20px;
+      height: 20px;
+      fill: white;
+      flex-shrink: 0;
     }
 
-    button {
-      padding: 10px 14px;
-      border: none;
-      border-radius: 6px;
-      background: #0f6cbd;
-      color: white;
-      cursor: pointer;
+    .header h1 {
       font-size: 14px;
+      font-weight: 600;
+      color: white;
+      letter-spacing: 0.01em;
     }
 
-    button:disabled {
-      opacity: 0.6;
+    .content {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #605e5c;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid transparent;
+      border-radius: 2px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background 0.1s, border-color 0.1s;
+      text-align: left;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .btn-primary {
+      background: #0078d4;
+      color: white;
+      border-color: #0078d4;
+    }
+    .btn-primary svg { fill: white; }
+    .btn-primary:hover { background: #106ebe; border-color: #106ebe; }
+    .btn-primary:active { background: #005a9e; border-color: #005a9e; }
+
+    .btn-danger {
+      background: white;
+      color: #a4262c;
+      border-color: #d13438;
+    }
+    .btn-danger svg { fill: #a4262c; }
+    .btn-danger:hover { background: #fde7e9; border-color: #a4262c; }
+    .btn-danger:active { background: #f9d0d2; }
+
+    .btn:disabled {
+      opacity: 0.5;
       cursor: not-allowed;
     }
 
-    #status {
-      margin-top: 12px;
-      font-size: 14px;
-      white-space: pre-wrap;
+    .divider {
+      height: 1px;
+      background: #edebe9;
+      margin: 8px 0;
+    }
+
+    .status {
+      margin: 0 20px 20px;
+      padding: 10px 12px;
+      border-radius: 2px;
+      font-size: 12px;
+      line-height: 1.4;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .status.show { display: flex; }
+
+    .status-success {
+      background: #dff6dd;
+      color: #107c10;
+      border-left: 3px solid #107c10;
+    }
+
+    .status-error {
+      background: #fde7e9;
+      color: #a4262c;
+      border-left: 3px solid #d13438;
+    }
+
+    .status-info {
+      background: #deecf9;
+      color: #005a9e;
+      border-left: 3px solid #0078d4;
+    }
+
+    .status svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .slide-info {
+      padding: 0 20px;
+      font-size: 12px;
+      color: #605e5c;
+      margin-bottom: 4px;
+    }
+
+    .slide-info strong {
+      color: #323130;
     }
   </style>
 </head>
 <body>
-  <h1>PowerPoint Slide Tool</h1>
-  <p>Click the button below to add a new blank slide to the current presentation.</p>
 
-  <button id="add-slide" disabled>Add slide</button>
-  <div id="status">Loading Office...</div>
+  <div class="header">
+    <svg class="header-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V4zm2-1a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H4z"/>
+      <path d="M6 7h8v1H6V7zm0 3h8v1H6v-1zm0 3h5v1H6v-1z"/>
+    </svg>
+    <h1>Slide Tools</h1>
+  </div>
+
+  <div class="content">
+    <div class="section-label">Slides</div>
+
+    <button class="btn btn-primary" id="addBtn" onclick="addSlide()">
+      <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 1a.5.5 0 01.5.5v6h6a.5.5 0 010 1h-6v6a.5.5 0 01-1 0v-6h-6a.5.5 0 010-1h6v-6A.5.5 0 018 1z"/>
+      </svg>
+      Add Slide
+    </button>
+
+    <div class="divider"></div>
+
+    <button class="btn btn-danger" id="deleteBtn" onclick="deleteSlide()">
+      <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6.5 1h3a.5.5 0 01.5.5v1H6v-1a.5.5 0 01.5-.5zM11 2.5v-1A1.5 1.5 0 009.5 0h-3A1.5 1.5 0 005 1.5v1H2.506a.58.58 0 00-.01 0H1.5a.5.5 0 000 1h.538l.853 10.66A2 2 0 004.885 16h6.23a2 2 0 001.994-1.84L13.962 3.5H14.5a.5.5 0 000-1h-.995a.59.59 0 00-.01 0H11zm1.958 1l-.846 10.58a1 1 0 01-.997.92h-6.23a1 1 0 01-.997-.92L3.042 3.5h9.916z"/>
+      </svg>
+      Delete Current Slide
+    </button>
+  </div>
+
+  <div class="slide-info" id="slideInfo"></div>
+
+  <div class="status" id="status">
+    <svg id="statusIcon" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"></svg>
+    <span id="statusText"></span>
+  </div>
 
   <script>
-    const addSlideButton = document.getElementById("add-slide");
-    const status = document.getElementById("status");
-
-    Office.onReady((info) => {
-      if (info.host !== Office.HostType.PowerPoint) {
-        status.textContent = "This add-in only works in PowerPoint.";
-        return;
-      }
-
-      addSlideButton.disabled = false;
-      status.textContent = "Ready.";
-      addSlideButton.addEventListener("click", addSlide);
+    Office.onReady(() => {
+      updateInfo();
     });
 
-    async function addSlide() {
-      addSlideButton.disabled = true;
-      status.textContent = "Adding slide...";
+    function showStatus(type, msg) {
+      const el = document.getElementById('status');
+      const icon = document.getElementById('statusIcon');
+      const text = document.getElementById('statusText');
+      el.className = 'status show status-' + type;
+      text.textContent = msg;
 
+      const icons = {
+        success: '<path d="M13.854 3.646a.5.5 0 010 .708l-7 7a.5.5 0 01-.708 0l-3.5-3.5a.5.5 0 11.708-.708L6.5 10.293l6.646-6.647a.5.5 0 01.708 0z"/>',
+        error:   '<path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1a6 6 0 110 12A6 6 0 018 2zm-.5 4.5a.5.5 0 011 0v3a.5.5 0 01-1 0v-3zm.5 5a.5.5 0 110-1 .5.5 0 010 1z"/>',
+        info:    '<path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1a6 6 0 110 12A6 6 0 018 2zm.5 4.5a.5.5 0 00-1 0v4a.5.5 0 001 0v-4zM8 5a.5.5 0 110-1 .5.5 0 010 1z"/>'
+      };
+      icon.innerHTML = icons[type] || '';
+
+      clearTimeout(window._statusTimer);
+      if (type !== 'error') {
+        window._statusTimer = setTimeout(() => {
+          el.className = 'status';
+        }, 3000);
+      }
+    }
+
+    async function updateInfo() {
+      try {
+        await PowerPoint.run(async (context) => {
+          context.presentation.slides.load('items');
+          await context.sync();
+          const n = context.presentation.slides.items.length;
+          document.getElementById('slideInfo').innerHTML =
+            `Presentation has <strong>${n}</strong> slide${n !== 1 ? 's' : ''}`;
+        });
+      } catch (_) {}
+    }
+
+    async function addSlide() {
+      const btn = document.getElementById('addBtn');
+      btn.disabled = true;
       try {
         await PowerPoint.run(async (context) => {
           context.presentation.slides.add();
           await context.sync();
         });
-
-        status.textContent = "Slide added successfully.";
-      } catch (error) {
-        console.error(error);
-        status.textContent = `Error: ${error.message || error}`;
+        showStatus('success', 'New slide added.');
+        await updateInfo();
+      } catch (err) {
+        showStatus('error', 'Failed to add slide: ' + (err.message || 'Unknown error'));
       } finally {
-        addSlideButton.disabled = false;
+        btn.disabled = false;
+      }
+    }
+
+    async function deleteSlide() {
+      const btn = document.getElementById('deleteBtn');
+      btn.disabled = true;
+      try {
+        await PowerPoint.run(async (context) => {
+          context.presentation.slides.load('items');
+          await context.sync();
+
+          const slides = context.presentation.slides.items;
+          if (slides.length <= 1) {
+            showStatus('error', 'Cannot delete the only slide.');
+            return;
+          }
+
+          // Get the selected slide index via the active view
+          const activeSlide = context.presentation.getSelectedSlides();
+          activeSlide.load('items');
+          await context.sync();
+
+          if (activeSlide.items.length > 0) {
+            activeSlide.items[0].delete();
+          } else {
+            // Fallback: delete last slide
+            slides[slides.length - 1].delete();
+          }
+          await context.sync();
+          showStatus('success', 'Slide deleted.');
+          await updateInfo();
+        });
+      } catch (err) {
+        // Fallback for older API versions
+        try {
+          await PowerPoint.run(async (context) => {
+            context.presentation.slides.load('items');
+            await context.sync();
+            const slides = context.presentation.slides.items;
+            if (slides.length <= 1) {
+              showStatus('error', 'Cannot delete the only slide.');
+              return;
+            }
+            slides[slides.length - 1].delete();
+            await context.sync();
+            showStatus('info', 'Last slide deleted (current slide detection unavailable).');
+            await updateInfo();
+          });
+        } catch (err2) {
+          showStatus('error', 'Failed to delete slide: ' + (err2.message || 'Unknown error'));
+        }
+      } finally {
+        btn.disabled = false;
       }
     }
   </script>
