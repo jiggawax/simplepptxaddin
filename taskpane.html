@@ -4,65 +4,85 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PowerPoint Add-in</title>
-
+  <title>Simple PPTX Add-in</title>
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 16px;
-      line-height: 1.4;
+      color: #222;
     }
 
     h1 {
       font-size: 20px;
-      margin-bottom: 12px;
+      margin: 0 0 12px;
     }
 
     p {
-      margin-bottom: 12px;
-      color: #444;
+      margin: 0 0 12px;
+      line-height: 1.5;
     }
 
     button {
       padding: 10px 14px;
-      border: 0;
+      border: none;
       border-radius: 6px;
+      background: #0f6cbd;
+      color: white;
       cursor: pointer;
       font-size: 14px;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     #status {
       margin-top: 12px;
       font-size: 14px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 <body>
-  <h1>Add a new slide</h1>
-  <p>Click the button to add a blank slide to the current presentation.</p>
-  <button id="add-slide">Add slide</button>
-  <div id="status"></div>
+  <h1>PowerPoint Slide Tool</h1>
+  <p>Click the button below to add a new blank slide to the current presentation.</p>
+
+  <button id="add-slide" disabled>Add slide</button>
+  <div id="status">Loading Office...</div>
 
   <script>
-    Office.onReady(() => {
-      document.getElementById("add-slide").addEventListener("click", addSlide);
+    const addSlideButton = document.getElementById("add-slide");
+    const status = document.getElementById("status");
+
+    Office.onReady((info) => {
+      if (info.host !== Office.HostType.PowerPoint) {
+        status.textContent = "This add-in only works in PowerPoint.";
+        return;
+      }
+
+      addSlideButton.disabled = false;
+      status.textContent = "Ready.";
+      addSlideButton.addEventListener("click", addSlide);
     });
 
     async function addSlide() {
-      const status = document.getElementById("status");
+      addSlideButton.disabled = true;
       status.textContent = "Adding slide...";
 
       try {
         await PowerPoint.run(async (context) => {
-          const slide = context.presentation.slides.add();
-          slide.load("id");
+          context.presentation.slides.add();
           await context.sync();
-          status.textContent = `Slide added. ID: ${slide.id}`;
         });
+
+        status.textContent = "Slide added successfully.";
       } catch (error) {
         console.error(error);
         status.textContent = `Error: ${error.message || error}`;
+      } finally {
+        addSlideButton.disabled = false;
       }
     }
   </script>
